@@ -1,0 +1,194 @@
+[
+  {
+    "id": "corn",
+    "method": "bare",
+    "grip": "small",
+    "objectToHandCanvasRatio": 0.578,
+    "foregroundLayers": 2,
+    "photoDecoded": true
+  },
+  {
+    "id": "corn",
+    "method": "glove",
+    "grip": "small",
+    "objectToHandCanvasRatio": 0.578,
+    "foregroundLayers": 2,
+    "photoDecoded": true
+  },
+  {
+    "id": "gourd",
+    "method": "bare",
+    "grip": "small",
+    "objectToHandCanvasRatio": 0.469,
+    "foregroundLayers": 2,
+    "photoDecoded": true
+  },
+  {
+    "id": "gourd",
+    "method": "glove",
+    "grip": "small",
+    "objectToHandCanvasRatio": 0.469,
+    "foregroundLayers": 2,
+    "photoDecoded": true
+  },
+  {
+    "id": "walnut",
+    "method": "bare",
+    "grip": "open",
+    "objectToHandCanvasRatio": 0.553,
+    "foregroundLayers": 2,
+    "photoDecoded": true
+  },
+  {
+    "id": "walnut",
+    "method": "glove",
+    "grip": "open",
+    "objectToHandCanvasRatio": 0.553,
+    "foregroundLayers": 2,
+    "photoDecoded": true
+  },
+  {
+    "id": "zitan",
+    "method": "bare",
+    "grip": "open",
+    "objectToHandCanvasRatio": 0.563,
+    "foregroundLayers": 2,
+    "photoDecoded": true
+  },
+  {
+    "id": "zitan",
+    "method": "glove",
+    "grip": "open",
+    "objectToHandCanvasRatio": 0.563,
+    "foregroundLayers": 2,
+    "photoDecoded": true
+  },
+  {
+    "id": "huanghuali",
+    "method": "bare",
+    "grip": "open",
+    "objectToHandCanvasRatio": 0.563,
+    "foregroundLayers": 2,
+    "photoDecoded": true
+  },
+  {
+    "id": "huanghuali",
+    "method": "glove",
+    "grip": "open",
+    "objectToHandCanvasRatio": 0.563,
+    "foregroundLayers": 2,
+    "photoDecoded": true
+  },
+  {
+    "id": "sandalwood",
+    "method": "bare",
+    "grip": "open",
+    "objectToHandCanvasRatio": 0.563,
+    "foregroundLayers": 2,
+    "photoDecoded": true
+  },
+  {
+    "id": "sandalwood",
+    "method": "glove",
+    "grip": "open",
+    "objectToHandCanvasRatio": 0.563,
+    "foregroundLayers": 2,
+    "photoDecoded": true
+  },
+  {
+    "id": "xingyue",
+    "method": "bare",
+    "grip": "open",
+    "objectToHandCanvasRatio": 0.516,
+    "foregroundLayers": 2,
+    "photoDecoded": true
+  },
+  {
+    "id": "xingyue",
+    "method": "glove",
+    "grip": "open",
+    "objectToHandCanvasRatio": 0.516,
+    "foregroundLayers": 2,
+    "photoDecoded": true
+  },
+  {
+    "id": "jingang",
+    "method": "bare",
+    "grip": "open",
+    "objectToHandCanvasRatio": 0.553,
+    "foregroundLayers": 2,
+    "photoDecoded": true
+  },
+  {
+    "id": "jingang",
+    "method": "glove",
+    "grip": "open",
+    "objectToHandCanvasRatio": 0.553,
+    "foregroundLayers": 2,
+    "photoDecoded": true
+  },
+  {
+    "id": "zijinshu",
+    "method": "bare",
+    "grip": "open",
+    "objectToHandCanvasRatio": 0.516,
+    "foregroundLayers": 2,
+    "photoDecoded": true
+  },
+  {
+    "id": "zijinshu",
+    "method": "glove",
+    "grip": "open",
+    "objectToHandCanvasRatio": 0.516,
+    "foregroundLayers": 2,
+    "photoDecoded": true
+  },
+  {
+    "id": "yedi",
+    "method": "bare",
+    "grip": "open",
+    "objectToHandCanvasRatio": 0.516,
+    "foregroundLayers": 2,
+    "photoDecoded": true
+  },
+  {
+    "id": "yedi",
+    "method": "glove",
+    "grip": "open",
+    "objectToHandCanvasRatio": 0.516,
+    "foregroundLayers": 2,
+    "photoDecoded": true
+  },
+  {
+    "id": "hetian",
+    "method": "bare",
+    "grip": "open",
+    "objectToHandCanvasRatio": 0.531,
+    "foregroundLayers": 2,
+    "photoDecoded": true
+  },
+  {
+    "id": "hetian",
+    "method": "glove",
+    "grip": "open",
+    "objectToHandCanvasRatio": 0.531,
+    "foregroundLayers": 2,
+    "photoDecoded": true
+  },
+  {
+    "id": "olive",
+    "method": "bare",
+    "grip": "open",
+    "objectToHandCanvasRatio": 0.553,
+    "foregroundLayers": 2,
+    "photoDecoded": true
+  },
+  {
+    "id": "olive",
+    "method": "glove",
+    "grip": "open",
+    "objectToHandCanvasRatio": 0.553,
+    "foregroundLayers": 2,
+    "photoDecoded": true
+  }
+]

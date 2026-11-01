@@ -1,0 +1,177 @@
+import { _electron as electron } from 'playwright-core';
+import assert from 'node:assert/strict';
+import { mkdtemp, mkdir, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const root = fileURLToPath(new URL('..', import.meta.url));
+const profile = await mkdtemp(path.join(tmpdir(), 'panwu-ui-test-'));
+const shots = path.join(root, 'artifacts', 'screenshots');
+await mkdir(shots, { recursive: true });
+const application = await electron.launch({
+  args: [root],
+  env: { ...process.env, PANWU_TEST_USER_DATA: profile },
+  timeout: 30000,
+});
+const errors = [];
+const check = message => console.log(`PASS ${message}`);
+try {
+  const initialWindow = await application.firstWindow();
+  await initialWindow.waitForLoadState('domcontentloaded');
+  await initialWindow.waitForFunction(() => Boolean(window.panchuanDesktop));
+  const page = application.windows().find(p => !p.url().includes('view=companion'));
+  assert(page, 'Dashboard window exists');
+  page.on('pageerror', e => errors.push(e.message));
+  await page.getByRole('heading', { name: '把时光，盘成温润。' }).waitFor();
+  await application.evaluate(({BrowserWindow})=>BrowserWindow.getAllWindows().forEach(window=>window.hide()));
+  await page.waitForFunction(() => [...document.querySelectorAll('.object-photo')].every(img => img.complete && img.naturalWidth > 0));
+  assert.equal(await page.evaluate(() => JSON.parse(localStorage.getItem('panwu-state-v1')).running), true);
+  await page.screenshot({ path: path.join(shots, 'dashboard.png'), fullPage: true });
+  assert.equal(await page.locator('.hero-title h2').textContent(), '小葫芦');
+  assert.equal(await page.locator('.hold-scene').getAttribute('data-pose'), 'pinch');
+  check('dashboard renders with free starter and illustrated milestone journey');
+
+  await page.locator('[data-action=choose]').click();
+  await page.locator('#modal-root [data-id=walnut]').click();
+  await page.getByRole('heading', { name: '文玩核桃', exact: true }).waitFor();
+  assert.equal(await page.locator('.hero-title h2').textContent(), '文玩核桃');
+  assert.equal(await page.locator('.hold-scene').getAttribute('data-pose'), 'walnut');
+  await page.waitForFunction(() => JSON.parse(localStorage.getItem('panwu-state-v1')).items.walnut.seconds > 0);
+  const before = await page.evaluate(() => JSON.parse(localStorage.getItem('panwu-state-v1')).stats.realTotalSeconds);
+  await page.waitForFunction(start => JSON.parse(localStorage.getItem('panwu-state-v1')).stats.realTotalSeconds >= start + 2, before);
+  const after = await page.evaluate(() => JSON.parse(localStorage.getItem('panwu-state-v1')).stats.realTotalSeconds);
+  assert(after - before < 4, 'Two windows share one elapsed clock');
+  const surface = await page.locator('[data-manual-surface=hero]').boundingBox();
+  await page.mouse.move(surface.x + surface.width / 2, surface.y + surface.height / 2);
+  await page.waitForFunction(() => Boolean(JSON.parse(localStorage.getItem('panwu-state-v1')).interaction.owner));
+  await page.waitForTimeout(500);
+  const stationary = await page.evaluate(() => JSON.parse(localStorage.getItem('panwu-state-v1')).items.walnut.seconds);
+  await page.waitForTimeout(1100);
+  const still = await page.evaluate(() => JSON.parse(localStorage.getItem('panwu-state-v1')).items.walnut.seconds);
+  assert(Math.abs(still - stationary) < 0.05, `Static hover stops automatic progression (${stationary} → ${still})`);
+  await page.mouse.move(surface.x + surface.width * .65, surface.y + surface.height * .4, { steps: 12 });
+  await page.waitForFunction(start => JSON.parse(localStorage.getItem('panwu-state-v1')).items.walnut.seconds > start + .02, still);
+  assert((await page.locator('[data-live=interaction-badge]').textContent()).includes('手动'));
+  await page.screenshot({ path: path.join(shots, 'manual-rolling.png'), fullPage: true });
+  await page.mouse.move(20, 20);
+  await page.waitForFunction(() => !JSON.parse(localStorage.getItem('panwu-state-v1')).interaction.owner);
+  const resumed = await page.evaluate(() => JSON.parse(localStorage.getItem('panwu-state-v1')).items.walnut.seconds);
+  await page.waitForFunction(start => JSON.parse(localStorage.getItem('panwu-state-v1')).items.walnut.seconds > start + .3, resumed);
+  await page.locator('[data-action=toggle]').click();
+  await page.waitForFunction(() => !JSON.parse(localStorage.getItem('panwu-state-v1')).running);
+  check('automatic startup, hover-to-manual, motion-only progress, leave-to-auto, pause and shared clock');
+
+  await page.locator('.nav [data-action=nav][data-page=collection]').click();
+  assert.equal(await page.locator('.item-card').count(), 12);
+  await page.screenshot({ path: path.join(shots, 'collection.png'), fullPage: true });
+  await page.locator('[data-action=buy][data-id=zitan]').click();
+  assert(await page.getByText('模拟支付体验 · 不会扣款，也不会打开支付账户。').isVisible());
+  await page.locator('[data-action=payment-method][data-method=alipay]').click();
+  await page.locator('[data-action=confirm-payment]').click();
+  await page.getByRole('heading', { name: '新陪伴，已到身边。' }).waitFor();
+  await page.locator('#modal-root [data-action=select-item]').click();
+  await page.getByRole('heading', { name: '小叶紫檀', exact: true }).waitFor();
+  assert.equal(await page.locator('.hero-title h2').textContent(), '小叶紫檀');
+  assert.equal(await page.locator('.hold-scene').getAttribute('data-pose'), 'beads');
+  await page.locator('[data-action=method][data-method=glove]').click();
+  await page.locator('[data-action=confirm-payment]').click();
+  await page.getByRole('heading', { name: '新陪伴，已到身边。' }).waitFor();
+  await page.locator('#modal-root [data-action=use-tool]').click();
+  await page.waitForFunction(() => JSON.parse(localStorage.getItem('panwu-state-v1')).care.method === 'glove');
+  assert.equal(await page.locator('[data-action=method][data-method=glove]').getAttribute('aria-pressed'), 'true');
+  const orders = await page.evaluate(() => JSON.parse(localStorage.getItem('panwu-orders-v1')));
+  assert.equal(orders.filter(o => o.status === 'completed').length, 2);
+  assert.equal(orders[0].method, 'alipay');
+  check('explicit zero-charge Alipay/WeChat demo checkout, item/tool entitlement and order record');
+
+  await page.locator('.nav [data-action=nav][data-page=guide]').click();
+  await page.locator('[data-action=hand][data-value=sweaty]').click();
+  await page.waitForFunction(() => JSON.parse(localStorage.getItem('panwu-state-v1')).care.hand === 'sweaty');
+  assert.equal(await page.locator('[data-live=guide-efficiency]').textContent(), '效率 100%');
+  await page.locator('.nav [data-action=nav][data-page=dashboard]').click();
+  await page.locator('[data-action=method][data-method=bare]').click();
+  await page.waitForFunction(() => JSON.parse(localStorage.getItem('panwu-state-v1')).care.method === 'bare');
+  assert((await page.locator('[data-live=advice]').textContent()).includes('效率降低'));
+  await page.locator('[data-action=care][data-care=clean]').click();
+  await page.waitForFunction(() => JSON.parse(localStorage.getItem('panwu-state-v1')).items.zitan.cleanliness === 100);
+  assert((await page.locator('[data-live=clean-label]').textContent()).includes('100%'));
+  await page.locator('[data-action=care][data-care=rest]').click();
+  await page.waitForFunction(() => !JSON.parse(localStorage.getItem('panwu-state-v1')).running);
+  check('sensitive material sweat rule, glove protection, cleaning and rest');
+
+  await page.locator('[data-action=choose]').click();
+  await page.locator('#modal-root [data-id=gourd]').click();
+  await page.getByRole('heading', { name: '小葫芦', exact: true }).waitFor();
+  await page.evaluate(async () => {
+    await navigator.locks.request('panwu-state-update', () => {
+      const s = JSON.parse(localStorage.getItem('panwu-state-v1'));
+      s.items.gourd.seconds = 30 * 86400 - 1;
+      s.care = { method: 'bare', hand: 'dry', humidity: 50, temperature: 23 };
+      s.speed = 2592000; s.running = false; s.lastTick = Date.now();
+      localStorage.setItem('panwu-state-v1', JSON.stringify(s));
+    });
+  });
+  await page.reload();
+  await page.waitForFunction(() => JSON.parse(localStorage.getItem('panwu-state-v1')).running);
+  await page.waitForFunction(() => JSON.parse(localStorage.getItem('panwu-state-v1')).rewards.some(r => r.id === 'gourd:warm'));
+  await page.locator('[data-action=toggle]').click();
+  await page.waitForFunction(() => !JSON.parse(localStorage.getItem('panwu-state-v1')).running);
+  assert((await page.locator('[data-live=stage-label]').textContent()).includes('磨合'));
+  await page.locator('.nav [data-action=nav][data-page=journal]').click();
+  await page.locator('[data-action=claim][data-id="gourd:warm"]').click();
+  await page.waitForFunction(() => JSON.parse(localStorage.getItem('panwu-state-v1')).points === 30);
+  const claimed = await page.evaluate(() => JSON.parse(localStorage.getItem('panwu-state-v1')));
+  assert.equal(claimed.points, 30);
+  assert.equal(claimed.rewards.filter(r => r.id === 'gourd:warm').length, 1);
+  assert(claimed.stats.realTotalSeconds < claimed.stats.totalSeconds);
+  await page.reload();
+  const restored = await page.evaluate(() => JSON.parse(localStorage.getItem('panwu-state-v1')));
+  assert.equal(restored.points, 30);
+  assert(restored.inventory.includes('zitan') && restored.tools.includes('glove'));
+  check('material-specific month/year curve, accelerated age, one-time reward and save restore');
+
+  await page.locator('[data-action=choose]').click();
+  await page.keyboard.press('Escape');
+  assert.equal(await page.locator('[role=dialog]').count(), 0);
+  await page.locator('[data-action=preview]').click();
+  await page.screenshot({ path: path.join(shots, 'appearance-preview.png'), fullPage: true });
+  await page.keyboard.press('Escape');
+  const widget = application.windows().find(p => p.url().includes('view=companion'));
+  assert(widget, 'Companion exists');
+  assert.equal(await widget.locator('.widget-title').textContent().then(t => t.includes('小葫芦')), true);
+  await widget.waitForFunction(() => [...document.querySelectorAll('.object-photo,.interaction-hand img')].every(img => img.complete && img.naturalWidth > 0));
+  await widget.evaluate(() => document.querySelector('#toast-root').replaceChildren());
+  await widget.screenshot({ path: path.join(shots, 'companion.png'), omitBackground: true });
+  assert.equal(await widget.locator('.hold-scene').getAttribute('data-pose'), 'pinch');
+  assert.equal(await widget.locator('.interaction-hand img').getAttribute('src'), './assets/interactions/reference-pinch-bare.png');
+  assert.equal(await widget.locator('.hand-front').count(), 2, 'Fingers and thumb occlude the object in front of a rear palm');
+  const heldSize=await widget.locator('.hold-scene').evaluate(scene=>{
+    const item=scene.querySelector('.held-object'),hand=scene.querySelector('.hand-back');
+    return {width:item.offsetWidth,height:item.offsetHeight,widthRatio:item.offsetWidth/hand.offsetWidth,heightRatio:item.offsetHeight/hand.offsetHeight};
+  });
+  assert(heldSize.width>=155&&heldSize.width<=230&&heldSize.height>=180&&heldSize.height<=330, `Gourd uses the portrait object canvas (${JSON.stringify(heldSize)})`);
+  assert(heldSize.widthRatio>=.48&&heldSize.widthRatio<=.72&&heldSize.heightRatio>=.56&&heldSize.heightRatio<=1.04, 'Gourd remains at the intended scale beside the 320px hand canvas');
+  await page.locator('[data-action=method][data-method=glove]').click();
+  await widget.waitForFunction(() => document.querySelector('.interaction-hand img')?.getAttribute('src')?.includes('reference-pinch-glove'));
+  await widget.waitForFunction(() => [...document.querySelectorAll('.object-photo,.interaction-hand img')].every(img=>img.complete&&img.naturalWidth>0));
+  await widget.evaluate(async()=>{await Promise.all([...document.images].map(img=>img.decode()));await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));});
+  await widget.screenshot({ path: path.join(shots, 'companion-glove.png'), omitBackground: true });
+  await page.locator('[data-action=method][data-method=brush]').click();
+  await page.locator('[data-action=confirm-payment]').click();
+  await page.getByRole('heading', { name: '新陪伴，已到身边。' }).waitFor();
+  await page.locator('#modal-root [data-action=use-tool]').click();
+  await widget.waitForFunction(() => document.querySelector('.interaction-hand img')?.getAttribute('src')?.includes('brush-hand'));
+  await widget.evaluate(() => document.querySelector('#toast-root').replaceChildren());
+  await widget.waitForFunction(() => [...document.querySelectorAll('.object-photo,.interaction-hand img')].every(img=>img.complete&&img.naturalWidth>0));
+  await widget.screenshot({ path: path.join(shots, 'companion-brush.png'), omitBackground: true });
+  await page.locator('.nav [data-action=nav][data-page=collection]').click();
+  await page.locator('[data-action=shop-tab][data-tab=orders]').click();
+  assert.equal(await page.locator('.order-row').count(), 3);
+  check('reference-pose alpha assets, portrait gourd sizing, bare/glove/brush companion, keyboard dismissal and order history');
+  assert.deepEqual(errors, [], 'Renderer has no JavaScript exceptions');
+  console.log(`UI smoke checks passed; screenshots in ${shots}`);
+} finally {
+  await application.close();
+  await rm(profile, { recursive: true, force: true });
+}

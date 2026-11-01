@@ -1,0 +1,129 @@
+/* GIF reference: a steady palm, a moving thumb, and small material-specific rolls. */
+.hold-scene {
+  --scene-scale: 1;
+  --thumb-origin: 72% 52%;
+  --thumb-cutout: polygon(evenodd, 0% 0%,100% 0%,100% 100%,0% 100%,0% 0%, 33% 37%,52% 37%,52% 50%,33% 50%,33% 37%);
+  width:320px;height:320px;transform:scale(var(--scene-scale));
+  transform-origin:50% 50%;
+}
+.is-auto .hold-scene:not(.method-brush),
+.widget-surface.is-auto .hold-scene:not(.method-brush),
+.is-manual .hold-scene:not(.method-brush),
+.widget-surface.is-manual .hold-scene:not(.method-brush) {
+  animation:none;
+  transform:scale(var(--scene-scale));
+  transition:none;
+}
+.widget-surface .hold-scene {--scene-scale:.94;transform:scale(var(--scene-scale));}
+.hold-scene .hand-back {clip-path:var(--thumb-cutout);}
+.hold-scene .interaction-hand,.hold-scene .hand-front {
+  inset:0;width:320px;height:320px;animation:none;transform:none;
+  filter:none;opacity:1;will-change:auto;
+}
+.hold-scene .hand-front {z-index:4;}
+.hold-scene .front-fingers {
+  clip-path:polygon(8% 22%,26% 20%,29% 32%,26% 48%,27% 66%,23% 76%,9% 66%);
+}
+.hold-scene .front-thumb {
+  z-index:5;
+  clip-path:polygon(31% 34%,49% 34%,67% 42%,78% 52%,73% 65%,58% 58%,46% 53%,32% 47%);
+  transform-origin:var(--thumb-origin);
+  animation:thumbRub 4s ease-in-out infinite;
+  animation-play-state:paused;
+}
+.hold-scene.pose-walnut {
+  --thumb-origin:82% 30%;
+  --thumb-cutout:polygon(evenodd,0% 0%,100% 0%,100% 100%,0% 100%,0% 0%,55% 19%,68% 19%,68% 32%,55% 32%,55% 19%);
+}
+.pose-walnut .front-fingers {
+  clip-path:polygon(5% 9%,29% 9%,37% 22%,32% 28%,28% 36%,29% 45%,32% 58%,30% 65%,18% 64%,5% 45%);
+}
+.pose-walnut .front-thumb {
+  clip-path:polygon(53% 17%,66% 16%,77% 14%,86% 23%,86% 35%,75% 41%,63% 37%,54% 31%);
+  animation-name:thumbRoll;
+}
+.hold-scene.pose-beads {
+  --thumb-origin:80% 24%;
+  --thumb-cutout:polygon(evenodd,0% 0%,100% 0%,100% 100%,0% 100%,0% 0%,49% 15%,69% 15%,69% 28%,49% 28%,49% 15%);
+}
+.pose-beads .front-fingers {
+  clip-path:polygon(34% 28%,49% 25%,60% 33%,63% 46%,66% 58%,65% 68%,61% 80%,45% 80%,33% 67%);
+}
+.pose-beads .front-thumb {
+  clip-path:polygon(48% 12%,69% 10%,81% 14%,87% 25%,77% 34%,64% 31%,50% 27%);
+  animation-name:thumbBead;
+}
+.hold-scene.pose-loose {
+  --thumb-origin:81% 43%;
+  --thumb-cutout:polygon(evenodd,0% 0%,100% 0%,100% 100%,0% 100%,0% 0%,46% 22%,64% 22%,64% 35%,46% 35%,46% 22%);
+}
+.pose-loose .front-fingers {
+  clip-path:polygon(34% 15%,48% 12%,55% 20%,55% 29%,48% 42%,51% 53%,57% 67%,48% 74%,34% 67%);
+}
+.pose-loose .front-thumb {
+  clip-path:polygon(44% 20%,59% 18%,75% 28%,86% 41%,78% 51%,64% 42%,49% 34%);
+  animation-name:thumbLoose;
+}
+.hold-scene .held-object,.widget-surface .held-object {
+  left:var(--held-left);top:var(--held-top);
+  width:var(--held-size);height:var(--held-height);
+  filter:none;transform:rotate(var(--held-angle));transform-origin:50% 50%;
+  animation:smallObjectRoll 4s ease-in-out infinite;
+  animation-play-state:paused;
+}
+.pose-walnut .held-object {animation-name:walnutRoll;}
+.pose-beads .held-object,.pose-loose .held-object {animation-name:beadFeed;}
+.hold-scene .photoreal-object {filter:none;}
+.is-auto .hold-scene .held-object,.is-auto .hold-scene .front-thumb,
+.is-stroking .hold-scene .held-object,.is-stroking .hold-scene .front-thumb {
+  animation-play-state:running;
+}
+.is-manual .hold-scene .held-object {
+  animation:none;
+  transform:translate(calc(var(--hand-x,0px)*.1),calc(var(--hand-y,0px)*.08)) rotate(calc(var(--held-angle) + var(--hand-angle,0deg)*.13));
+}
+.is-manual .hold-scene .front-thumb {
+  animation:none;
+  transform:translate(calc(var(--hand-x,0px)*.18),calc(var(--hand-y,0px)*.2)) rotate(calc(var(--hand-angle,0deg)*.2));
+}
+.is-paused .hold-scene .held-object,.is-paused .hold-scene .front-thumb {
+  animation-play-state:paused;
+}
+/* The brush retains its own sweep and does not borrow a bare/gloved grip. */
+.hold-scene.method-brush .hand-back {clip-path:none;}
+.hold-scene.method-brush .interaction-brush {
+  inset:auto;width:215px;height:215px;left:116px;top:65px;
+  z-index:4;transform-origin:80% 80%;
+}
+.is-auto .hold-scene.method-brush .interaction-brush {animation:brushSweep 2.6s ease-in-out infinite;}
+@keyframes thumbRub {
+  0%,100% {transform:translate(0,0) rotate(-.4deg);}
+  50% {transform:translate(-2px,2.5px) rotate(1.2deg);}
+}
+@keyframes thumbRoll {
+  0%,100% {transform:rotate(-.5deg);}
+  50% {transform:translate(-2px,1.5px) rotate(1.4deg);}
+}
+@keyframes thumbBead {
+  0%,100% {transform:translate(0,0) rotate(-.3deg);}
+  48% {transform:translate(-2.4px,2px) rotate(1.3deg);}
+}
+@keyframes thumbLoose {
+  0%,100% {transform:translate(0,0) rotate(-.3deg);}
+  50% {transform:translate(-2px,2.5px) rotate(1deg);}
+}
+@keyframes smallObjectRoll {
+  0%,100% {transform:rotate(var(--held-angle));}
+  50% {transform:translate(.7px,0) rotate(calc(var(--held-angle) + 1.4deg));}
+}
+@keyframes walnutRoll {
+  0%,100% {transform:rotate(calc(var(--held-angle) - 1deg));}
+  50% {transform:translate(1px,-.7px) rotate(calc(var(--held-angle) + 2deg));}
+}
+@keyframes beadFeed {
+  0%,100% {transform:rotate(var(--held-angle));}
+  50% {transform:translate(.7px,1.5px) rotate(calc(var(--held-angle) + .9deg));}
+}
+@media(prefers-reduced-motion:reduce) {
+  .hold-scene .held-object,.hold-scene .front-thumb {animation:none!important;}
+}

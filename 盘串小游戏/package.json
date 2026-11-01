@@ -1,0 +1,26 @@
+{
+  "name": "panchuan-companion",
+  "version": "0.1.0",
+  "description": "盘物 PANWU · 桌面文玩陪伴",
+  "private": true,
+  "type": "module",
+  "main": "electron/main.cjs",
+  "scripts": {
+    "start": "electron .",
+    "dev": "node scripts/dev-server.mjs",
+    "test": "node --test tests/*.test.js",
+    "test:desktop": "node scripts/smoke-desktop.mjs",
+    "test:ui": "node scripts/smoke-ui.mjs",
+    "build": "node scripts/package.mjs",
+    "package": "node scripts/package.mjs"
+  },
+  "overrides": {
+    "glob": "^14.0.2",
+    "minimatch": "^11.0.1"
+  },
+  "devDependencies": {
+    "@electron/packager": "^20.3.0",
+    "electron": "^45.2.1",
+    "playwright-core": "^1.56.0"
+  }
+}
